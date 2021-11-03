@@ -24,6 +24,9 @@
     <ClCompile Include="ht.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="longint.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mpc.h">
@@ -33,6 +36,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="lsp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="longint.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

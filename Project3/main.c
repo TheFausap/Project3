@@ -24,6 +24,8 @@ void add_history(char* unused) {}
 
 int gensym = 0;
 
+bignum BZERO;
+
 /* Simple package implementation */
 /* Global vars to simulate the IN-PACKAGE */
 /* and the USE-PACKAGE commands */
@@ -44,6 +46,14 @@ lval* lval_dnum(double x) {
     lval* v = malloc(sizeof(lval));
     v->type = LVAL_DNUM;
     v->dnum = x;
+    return v;
+}
+
+lval* lval_bnum(bignum b) {
+    lval* v = malloc(sizeof(lval));
+    v->type = LVAL_BNUM;
+    initialize_bignum(&v->bnum); /* init to 0 */
+    add_bignum(&b, &BZERO, &v->bnum);
     return v;
 }
 
@@ -342,6 +352,7 @@ lval* lval_copy(lval* v) {
         break;
     case LVAL_INUM: x->inum = v->inum; break;
     case LVAL_DNUM: x->dnum = v->dnum; break;
+    case LVAL_BNUM: add_bignum(&v->bnum, &BZERO, &x->bnum); break;
 
         /* Copy Strings using malloc and strcpy */
     case LVAL_ERR:
@@ -558,6 +569,9 @@ void lval_print(lval* v) {
     switch (v->type) {
     case LVAL_INUM:  printf("%lli", v->inum); break;
     case LVAL_DNUM:  printf("%lf", v->dnum); break;
+    case LVAL_BNUM:
+        print_bignum(&v->bnum);
+        break;
     case LVAL_ERR:   printf("Error: %s", v->err); break;
     case LVAL_SYM:   printf("%s", v->sym); break;
     case LVAL_STR:   lval_print_str(v); break;
@@ -582,6 +596,7 @@ char* ltype_name(int t) {
     case LVAL_FUN: return "Function";
     case LVAL_INUM: return "Integer Number";
     case LVAL_DNUM: return "Floating-Point Number";
+    case LVAL_BNUM: return "BIGNUM";
     case LVAL_ERR: return "Error";
     case LVAL_SYM: return "Symbol";
     case LVAL_STR: return "String";
@@ -897,6 +912,162 @@ lval* builtin_pow(lenv* e, lval* a) {
 
 lval* builtin_mod(lenv* e, lval* a) {
     return builtin_op(e, a, "%");
+}
+
+lval* builtin_addb(lenv* e, lval* a) {
+    lval* r;
+    bignum b, c, tmp;
+
+    /* Pop the first element */
+    lval* x = lval_pop(a, 0);
+
+    if (x->type == LVAL_INUM)
+        int_to_bignum(x->inum, &b);
+    else
+        add_bignum(&x->bnum,&BZERO,&b);
+
+    /* While there are still elements remaining */
+    while (a->count > 0) {
+
+        /* Pop the next element */
+        lval* y = lval_pop(a, 0);
+
+        if (y->type == LVAL_INUM)
+            int_to_bignum(y->inum, &c);
+        else
+            add_bignum(&y->bnum,&BZERO,&c);
+
+        add_bignum(&b, &c, &tmp);
+        add_bignum(&tmp, &BZERO, &b);
+
+        lval_del(y);
+    }
+
+    lval_del(a); 
+    r = lval_bnum(b);
+    return r;
+}
+
+lval* builtin_subb(lenv* e, lval* a) {
+    lval* r;
+    bignum b, c, tmp;
+
+    /* Pop the first element */
+    lval* x = lval_pop(a, 0);
+
+    if (x->type == LVAL_INUM)
+        int_to_bignum(x->inum, &b);
+    else
+        add_bignum(&x->bnum, &BZERO, &b);
+
+    /* While there are still elements remaining */
+    while (a->count > 0) {
+
+        /* Pop the next element */
+        lval* y = lval_pop(a, 0);
+
+        if (y->type == LVAL_INUM)
+            int_to_bignum(y->inum, &c);
+        else
+            add_bignum(&y->bnum, &BZERO, &c);
+
+        subtract_bignum(&b, &c, &tmp);
+        add_bignum(&tmp, &BZERO, &b);
+
+        lval_del(y);
+    }
+
+    lval_del(a); 
+    r = lval_bnum(b);
+    return r;
+}
+
+lval* builtin_mulb(lenv* e, lval* a) {
+    lval* r;
+    bignum b, c, tmp;
+
+    /* Pop the first element */
+    lval* x = lval_pop(a, 0);
+
+    if (x->type == LVAL_INUM)
+        int_to_bignum(x->inum, &b);
+    else
+        add_bignum(&x->bnum, &BZERO, &b);
+
+    /* While there are still elements remaining */
+    while (a->count > 0) {
+
+        /* Pop the next element */
+        lval* y = lval_pop(a, 0);
+
+        if (y->type == LVAL_INUM)
+            int_to_bignum(y->inum, &c);
+        else
+            add_bignum(&y->bnum, &BZERO, &c);
+
+        multiply_bignum(&b, &c, &tmp);
+        add_bignum(&tmp, &BZERO, &b);
+
+        lval_del(y);
+    }
+
+    lval_del(a); 
+    r = lval_bnum(b);
+    return r;
+}
+
+lval* builtin_divb(lenv* e, lval* a) {
+    lval* r;
+    bignum b, c, tmp;
+
+    /* Pop the first element */
+    lval* x = lval_pop(a, 0);
+
+    if (x->type == LVAL_INUM)
+        int_to_bignum(x->inum, &b);
+    else
+        add_bignum(&x->bnum, &BZERO, &b);
+
+    /* While there are still elements remaining */
+    while (a->count > 0) {
+
+        /* Pop the next element */
+        lval* y = lval_pop(a, 0);
+
+        if (y->type == LVAL_INUM)
+            int_to_bignum(y->inum, &c);
+        else
+            add_bignum(&y->bnum, &BZERO, &c);
+
+        divide_bignum(&b, &c, &tmp);
+        add_bignum(&tmp, &BZERO, &b);
+
+        lval_del(y);
+    }
+
+    lval_del(a); 
+    r = lval_bnum(b);
+    return r;
+}
+
+lval* builtin_i_to_bnum(lenv* e, lval* a) {
+    LASSERT_NUM("to-bnum", a, 1);
+    LASSERT_TYPE("to-bnum", a, 0, LVAL_INUM);
+    lval* x = lval_bnum(BZERO);
+
+    int_to_bignum(a->cell[0]->inum, &x->bnum);
+    return x;
+}
+
+/* 0 == eq, 1 == a < b, -1 == a > b */
+lval* builtin_cmp_bnum(lenv* e, lval* a) {
+    LASSERT_NUM("cmp-bnum", a, 2);
+    LASSERT_TYPE("cmp-bnum", a, 0, LVAL_BNUM);
+    LASSERT_TYPE("cmp-bnum", a, 1, LVAL_BNUM);
+    int v;
+
+    v = compare_bignum(&a->cell[0]->bnum, &a->cell[1]->bnum);
+    return lval_inum(v);
 }
 
 lval* builtin_ord(lenv* e, lval* a, char* op) {
@@ -1503,6 +1674,13 @@ void lenv_add_builtins(lenv* e) {
     lenv_add_builtin(e, "^", builtin_pow);
     lenv_add_builtin(e, "%", builtin_mod);
     lenv_add_builtin(e, "random", builtin_random);
+    /* integer bignum */
+    lenv_add_builtin(e, "addb", builtin_addb);
+    lenv_add_builtin(e, "subb", builtin_subb);
+    lenv_add_builtin(e, "mulb", builtin_mulb);
+    lenv_add_builtin(e, "divb", builtin_divb);
+    /* conversion */
+    lenv_add_builtin(e, "to-bnum", builtin_i_to_bnum);
 
     /* Comparison Functions */
     lenv_add_builtin(e, "if", builtin_if);
@@ -1512,6 +1690,8 @@ void lenv_add_builtins(lenv* e) {
     lenv_add_builtin(e, "<", builtin_lt);
     lenv_add_builtin(e, ">=", builtin_ge);
     lenv_add_builtin(e, "<=", builtin_le);
+
+    lenv_add_builtin(e, "cmp-bnum", builtin_cmp_bnum);
 
     /* OS level Functions */
     lenv_add_builtin(e, "exit", builtin_exit);
@@ -1523,6 +1703,8 @@ int main(int argc, char** argv) {
     int lisp_version = 0;
     int lisp_build = 0;
     int mv = 0;
+    initialize_bignum(&BZERO);
+
     lisp_version = (int)hypot(LVER * 42.0, 42.0);
     lisp_build = (int)(100000*(hypot(LVER + 42.0, 42.0) - (int)hypot(LVER + 42.0, 42.0)));
 #ifndef _DEBUG

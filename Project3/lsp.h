@@ -3,6 +3,8 @@
 #ifndef _LSP_H
 #define _LSP_H
 
+#define LVER 3.0 /* in the form x.y */
+
 //#define HT 
 #define MAXENV 2000
 #define MAXPACK 50
@@ -19,6 +21,8 @@
 #include "ht.h"
 #endif
 
+#include "longint.h"
+
 struct lval;
 struct lenv;
 struct pack;
@@ -29,6 +33,7 @@ typedef struct pack pack;
 mpc_parser_t* Number;
 mpc_parser_t* NumbI;
 mpc_parser_t* NumbF;
+mpc_parser_t* NumbL;
 mpc_parser_t* Symbol;
 mpc_parser_t* String;
 mpc_parser_t* Comment;
@@ -37,12 +42,12 @@ mpc_parser_t* Qexpr;
 mpc_parser_t* Expr;
 mpc_parser_t* Lispy;
 
-#define LVER 2.0 /* in the form x.y */
+
 
 /* lval types */
 enum {
     LVAL_ERR = 0, LVAL_INUM, LVAL_DNUM, LVAL_SYM,
-    LVAL_STR, LVAL_SEXPR, LVAL_FUN, LVAL_QEXPR
+    LVAL_BNUM, LVAL_STR, LVAL_SEXPR, LVAL_FUN, LVAL_QEXPR
 };
 
 typedef lval* (*lbuiltin)(lenv*, lval*);
@@ -79,6 +84,8 @@ typedef struct lval {
     char* str;        /* 5 */
     /* Functions */
     lbuiltin builtin; /* 6 (FFI?) */
+
+    bignum bnum;     /* 7 */
 
     lenv* env;
     lval* formals;

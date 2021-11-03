@@ -20,11 +20,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ht.c" />
+    <ClCompile Include="longint.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="mpc.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ht.h" />
+    <ClInclude Include="longint.h" />
     <ClInclude Include="lsp.h" />
     <ClInclude Include="mpc.h" />
   </ItemGroup>
@@ -126,9 +128,10 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <SDLCheck>true</SDLCheck>
+      <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

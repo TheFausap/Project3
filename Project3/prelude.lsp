@@ -2,6 +2,8 @@
 ;;;   Lispy Standard Prelude
 ;;;
 
+;;; list = quote (q-expr)
+
 ;;; Atoms
 (def {nil} {})
 (def {true} 1)
@@ -38,14 +40,14 @@
     {last l}
 })
 
-;;; Logical defunctions
+;;; Logical functions
 
-; Logical defunctions
+; Logical functions
 (defun {not x}   {- 1 x})
 (defun {or x y}  {+ x y})
 (defun {and x y} {* x y})
 
-;;; Numeric defunctions
+;;; Numeric functions
 
 ; Minimum of Arguments
 (defun {min & xs} {
@@ -67,7 +69,7 @@
     }  
 })
 
-;;; Conditional defunctions
+;;; Conditional functions
 
 (defun {select & cs} {
   if (== cs nil)
@@ -79,19 +81,18 @@
   if (== cs nil)
     {error "No Case Found"}
     {if (== x (fst (fst cs))) {snd (fst cs)} {
-      unpack case (join (list x) (tail cs))}}
+	  unpack case (join (list x) (tail cs))}}
 })
 
 (def {otherwise} true)
 
-
-;;; Misc defunctions
+;;; Misc functions
 
 (defun {flip f a b} {f b a})
 (defun {ghost & xs} {eval xs})
 (defun {comp f g x} {f (g x)})
 
-;;; List defunctions
+;;; List functions
 
 ; First, Second, or Third Item in List
 (defun {fst l} { eval (head l) })
@@ -115,7 +116,7 @@
 ; Last item in List
 (defun {last l} {nth (- (len l) 1) l})
 
-; Apply defunction to List
+; Apply function to List
 (defun {map f l} {
   if (== l nil)
     {nil}
@@ -227,7 +228,32 @@
     }
 })
 
+; WHEN macro
+(defun {when c d} {if (eval c) (eval d) {}})
+
 ;;; Other defun
+
+; numberp
+(defun {numberp n} {
+  (or (== (ldb n 0) 1) 
+      (== (ldb n 0) 2))
+})
+      
+; symbolp
+(defun {symbolp n} {
+  (== (ldb n 0) 7)
+})
+
+(defun {dec n} {- n 1})
+(defun {inc n} {+ n 1})
+
+(defun {plusp n} {> n 0})
+(defun {minusp n} {< n 0})
+(defun {zerop n} {== n 0})
+(defun {oddp n} {% n 2})
+(defun {evenp n} {not (oddp n)})
+
+(defun {const n} {\ {_} (list n)})
 
 ; Fibonacci
 (defun {fib n} {
@@ -235,4 +261,16 @@
     { (== n 0) 0 }
     { (== n 1) 1 }
     { otherwise (+ (fib (- n 1)) (fib (- n 2))) }
+})
+
+(defun {bfib n} {
+  select
+    { (== (cmp-bnum n (to-bnum 0)) 0) 0 }
+    { (== (cmp-bnum n (to-bnum 1)) 0) 1 }
+    { otherwise (addb (bfib (subb n 1)) (bfib (subb n 2))) }
+})
+
+; Factorial
+(defun {fac n} {
+  product (range 2 (inc n))
 })
